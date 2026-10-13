@@ -1,0 +1,5 @@
+.R
+.Rproj.user/
+data/
+policy_rate_norges_bank.csv
+.gitignore.swp
