@@ -1,4 +1,4 @@
-# Data wrangling and tyding
+# Data tyding and data wrangling
 
 library(tidyverse)
 # install.packages("eurostat")
@@ -22,7 +22,7 @@ get_norges_bank = function(dataset, key){
   )
   
   # and read the dataset from the url then select the date and observed data, mutate and arrage the date column
-  read_delim(url, delim = ';') |> 
+  read_delim(url, delim = ';', show_col_types=FALSE) |> 
     select(date=TIME_PERIOD, value=OBS_VALUE) |>  
     mutate(date = ym(date))|> 
     arrange(date)
@@ -45,11 +45,11 @@ get_ssb = function(table, query) {
 
 # FRED: one series, given its id
 get_fred = function(series_id){
-  # First we construct the needed url, FRED wants full dates
+  # First we construct the needed url, FRED wants full dates (start: first day of start_month, end: last day of end_month)
   url = paste0(
     "https://fred.stlouisfed.org/graph/fredgraph.csv?id=", series_id,
     "&cosd=", start_month, "-01",
-    "&coed=", end_month, "-01"
+    "&coed=", ym(end_month) %m+% months(1) - days(1)
   )
   
   # FRED marks missing values with ".", and the column names have changed over the years, so we rename by position
@@ -58,8 +58,6 @@ get_fred = function(series_id){
     mutate(date = as_date(date)) |> 
     arrange(date)
 }
-
-
 
 
 # Fetch the exchange rate information from the API and just keep two columns: date, observed_values
@@ -97,10 +95,11 @@ eur = get_norges_bank("EXR", "M.EUR.NOK.SP") |> rename(eur_nok=value)
 usd = get_norges_bank("EXR", "M.USD.NOK.SP") |> rename(usd_nok=value)
 
 
-# Government yields (per cent): 3-month treasury bills and 10-year bonds
-y3m = get_norges_bank("GOVT_GENERIC_RATES", "M.3M.TBIL") |> rename(yield_3m=value)
+# Interest rates (per cent): 3-month interbank rate (NIBOR) and 10-year government bond yield, OECD data via FRED
+# (Norges Bank's government rates only start in 2019)
+y3m = get_fred("IR3TIB01NOM156N") |> rename(rate_3m=value)
 
-y10y = get_norges_bank("GOVT_GENERIC_RATES", "M.10Y.GBON") |> rename(yield_10y=value)
+y10y = get_fred("IRLTLT01NOM156N") |> rename(yield_10y=value)
 
 
 
@@ -124,9 +123,13 @@ retail = get_ssb(
 ) |> rename(retail_volume=2)
 
 
-# Brent oil price (USD per barrel, monthly average) and US CPI (index, seasonally adjusted)
-brent = get_fred("POILBREUSDM") |> rename(brent_usd=value)
+# Brent oil price (USD per barrel): daily prices averaged to monthly
+brent = get_fred("DCOILBRENTEU") |> 
+  mutate(date = floor_date(date, "month")) |> 
+  group_by(date) |> 
+  summarise(brent_usd = mean(value, na.rm=TRUE))
 
+# US CPI (index, seasonally adjusted)
 us_cpi = get_fred("CPIAUCSL") |> rename(us_cpi=value)
 
 
@@ -148,6 +151,35 @@ cpi = cpi |>
   arrange(date) |>
   mutate(prev_cpi = lag(cpi_index), inflation=100*(log(cpi_index) - log(prev_cpi)))
 
+# Add inflation_12m
+cpi = cpi |> mutate(inflation_12m = 100 * (log(cpi_index) - log(lag(cpi_index, 12))))
+
+# Add core_12m
+cpi = cpi |> mutate(core_12m = 100 * (log(cpi_ate_index) - log(lag(cpi_ate_index, 12))))
+
+# Add ssb_log
+cpi = cpi |> mutate(ssb_log = 100 * log(1 + cpi_yoy_pct/100))
+
+# Add the abs difference between ssb_log and inflation_12m
+cpi = cpi |> mutate(gap = abs(ssb_log - inflation_12m))
+
+print("Maximum Gap:")
+print(cpi |> summarise(max_gap = max(gap, na.rm = TRUE)))
+
+# Remove the check columns, they are not needed in the dataset
+cpi = cpi |> select(-ssb_log, -gap)
+
+
+# Some series are published one month after CPI, so on the forecast day we only have them up to the previous month.
+# known_at_forecast moves their date forward by months_late, so each value is used only when it is really available.
+known_at_forecast = function(df, months_late) df |> mutate(date = date %m+% months(months_late))
+
+ue = known_at_forecast(ue, 1)
+credit = known_at_forecast(credit, 1)
+retail = known_at_forecast(retail, 1)
+hicp = known_at_forecast(hicp, 1) 
+us_cpi = known_at_forecast(us_cpi, 1)
+
 # Put all series in one named list, so we can check and join them together
 series_list = list(
   cpi=cpi, ue=ue, exr=exr, pr=pr,
@@ -164,7 +196,10 @@ series_list |>
 # Merge the datasets through date column
 dataset = series_list |> reduce(inner_join, by='date')
 
-# Rename the columns
+# Add term_spread: 10-year yield minus 3-month rate, a falling spread signals that markets expect lower rates and inflation
+dataset = dataset |> mutate(term_spread = yield_10y - rate_3m)
+
+# Rename the columns that their names are ambiguous
 dataset = dataset |> rename(
   cpi=cpi_index, 
   cpi_mom=cpi_mom_pct, 
@@ -181,5 +216,7 @@ glimpse(dataset)
 # Check whether any column includes any missing values or not
 dataset |> summarise(across(everything(), ~sum(is.na(.x))))
 
-all_months = tibble(date=seq(ym('2006-01'), ym('2026-08'), by='month'))
+# Check missing months, the sample starts in 2006-02 because unemployment is moved one month later
+all_months = tibble(date=seq(ym('2006-02'), ym('2026-08'), by='month'))
 all_months |> anti_join(dataset, by='date')
+
