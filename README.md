@@ -27,6 +27,9 @@ The script downloads and combines series such as:
 2. Install the required packages if needed:
    - `tidyverse`
    - `eurostat`
+   - `slider`
+   - `forecast`
+   - `tseries`
 3. Run `main.R`.
 
 The script will fetch the latest available data from the source APIs and construct a merged monthly dataset for analysis.
