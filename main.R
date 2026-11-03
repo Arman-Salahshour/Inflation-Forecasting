@@ -247,7 +247,7 @@ dataset |>
     )
   ) |> 
   filter(!date %in% dataset$date
-         ) |> 
+  ) |> 
   select(date) # No missing dates!
 
 ## Descriptive statistics
@@ -268,16 +268,16 @@ descriptive_stats <- dataset |>
     max = max(inflation_12m, na.rm = T),
     .groups = "drop"
   ) 
-# Post 2021: 68 obs, Pre 2021: 179 obs
-  
+descriptive_stats   # Post 2021: 68 obs, Pre 2021: 179 obs
+
 
 ## Times Series Visualization 
 ts_12m_inflation <- dataset |> 
   ggplot(aes(date, inflation_12m)
-         ) +
+  ) +
   geom_line(color = "grey", linewidth = .8
-            ) +
-    # Inflation target before 2018 (2.5 %)
+  ) +
+  # Inflation target before 2018 (2.5 %)
   annotate(
     "segment",
     x = min(dataset$date),
@@ -285,16 +285,16 @@ ts_12m_inflation <- dataset |>
     y = 2.5,
     yend = 2.5,
     linetype = "dashed", color = "red", linewidth = 0.3
-    ) +
-    # Inflation target after 2018 (2 %)
+  ) +
+  # Inflation target after 2018 (2 %)
   annotate(
     "segment",
-      x = as.Date("2018-03-01"),
-      xend = max(dataset$date),
-      y = 2,
-      yend = 2,
-      linetype = "dashed", color = "red", linewidth = 0.3
-    ) +
+    x = as.Date("2018-03-01"),
+    xend = max(dataset$date),
+    y = 2,
+    yend = 2,
+    linetype = "dashed", color = "red", linewidth = 0.3
+  ) +
   annotate(
     "segment",
     x = as.Date("2018-03-01"),
@@ -310,14 +310,15 @@ ts_12m_inflation <- dataset |>
     x =  "Date",
     y = "Inflation (%)"
   )
-  
+ts_12m_inflation
+
 # macroeconomic predictors
-predictors <- dataset |> 
-  select(date, unemp,, cpi, us_cpi,
+predictor_plot <- dataset |> 
+  select(date, unemp, cpi, us_cpi,
          policy_rate, yield_10y, credit_growth, 
          krone_i44, eur_nok, usd_nok,
          retail_volume, hicp_ea, brent_usd
-         ) |> 
+  ) |> 
   pivot_longer(
     cols = -date,
     names_to = "variable",
@@ -325,12 +326,12 @@ predictors <- dataset |>
   ) |> 
   ggplot(aes(
     date, value, color = variable)
-    ) +
+  ) +
   geom_line() +
   facet_wrap(~ variable, 
-    scales = "free_y",
-    ncol = 3
-    ) +
+             scales = "free_y",
+             ncol = 3
+  ) +
   scale_x_date(date_breaks = "5 years",
                date_labels = "%Y") +
   labs(
@@ -345,6 +346,7 @@ predictors <- dataset |>
     axis.text.x = element_text(size = 8),
     legend.position = "none"
   )
+predictor_plot
 
 # Pre- and post-2021 comparison using 12-month inflation
 inflation_pre_post_21 <- dataset |> 
@@ -368,7 +370,7 @@ inflation_pre_post_21 <- dataset |>
   theme(
     legend.position = "none"
   )
-
+inflation_pre_post_21
 
 # 12-month moving average.
 # install.packages("slider")
@@ -378,10 +380,10 @@ inflation_12m_ma <- dataset |>
   arrange(date) |> 
   mutate(cpi_ma12 = slide_dbl(
     cpi_mom,
-         .f = mean, 
-         .before = 11,
-         .complete = T
-         )) |> 
+    .f = mean, 
+    .before = 11,
+    .complete = T
+  )) |> 
   ggplot(aes(x = date)) +
   geom_line(
     aes(y = cpi_mom),
@@ -390,7 +392,6 @@ inflation_12m_ma <- dataset |>
     aes(y = cpi_ma12),
     color = "darkred") +
   theme_minimal() +
-  theme()
   labs(
     title = "12-month moving average of monthly inflation",
     x = "Year",
@@ -417,6 +418,7 @@ acf_12m_inflation <- ggAcf(
     y = "ACF"
   ) +
   theme_minimal()
+acf_12m_inflation
 
 # PACF
 pacf_12m_inflation <- ggPacf(
@@ -429,6 +431,7 @@ pacf_12m_inflation <- ggPacf(
     y = "PACF"
   ) + 
   theme_minimal()
+pacf_12m_inflation
 
 ## ACF and PACF for monthly inflation 
 # ACF monthly
@@ -446,6 +449,7 @@ acf_m_inflation <- ggAcf(
     y = "ACF"
   ) +
   theme_minimal()
+acf_m_inflation
 
 # PACF monthly
 pacf_m_inflation <- ggPacf(
@@ -458,6 +462,7 @@ pacf_m_inflation <- ggPacf(
     y = "PACF"
   ) +
   theme_minimal()
+pacf_m_inflation
 
 # Inspecting seasonality
 library(lubridate)
@@ -465,16 +470,16 @@ library(lubridate)
 seasonality <- dataset |> 
   mutate(
     month = lubridate::month(date, label = T)
-    ) |> 
+  ) |> 
   group_by(month) |> 
   summarize(
     mean_inflation = mean(inflation, na.rm = T),
     .groups = "drop"
-    ) |> 
+  ) |> 
   ggplot(aes(month, mean_inflation, fill = month)) +
   geom_col() +
   labs(
-    title = "Average Monthly Inflation by Calendar Month",
+    title = "Average Monthly Inflation by Calendar Month (seasonality)",
     subtitle = "Norway, 2006-2026",
     x = "Month",
     y = "Average Monthly Inflation (%)"
@@ -483,6 +488,7 @@ seasonality <- dataset |>
   theme(
     legend.position = "none"
   )
+seasonality
 
 # Seasonality pre_ and post-2021
 seasonality_pre_post_21 <- dataset |>
@@ -503,11 +509,12 @@ seasonality_pre_post_21 <- dataset |>
   geom_col(position = "dodge") +
   theme_minimal() +
   labs(
-    title = "Average Monthly Inflation by Calendar Month",
+    title = "Average Monthly Inflation by Calendar Month (seasonality)",
     subtitle = "Comparison of pre- and post-2021",
     x = "Month",
     y = "Average monthly inflation (%)"
   )
+seasonality_pre_post_21
 
 ## Computing Correlation Matrix
 cor_data <- dataset |> 
@@ -519,12 +526,12 @@ cor_data <- dataset |>
          retail_growth = 100 * (log(retail_volume) - log(lag(retail_volume, 12))),
          us_inflation = 100 * (log(us_cpi) - log(lag(us_cpi, 12))),
          electricity_inflation = 100 * (log(cpi_elec) - log(lag(cpi_elec, 12)))
-         ) |> 
+  ) |> 
   select(inflation_12m, unemp, policy_rate, rate_3m, yield_10y, 
          term_spread, credit_growth, eur_nok_growth, usd_nok_growth, 
          brent_growth, krone_i44_growth, retail_growth, us_inflation, 
          electricity_inflation, hicp_ea
-         )
+  )
 
 cor_matrix <- cor(
   cor_data,
@@ -537,13 +544,13 @@ round(cor_matrix, 2)
 cormatrix <- as.data.frame(as.table(cor_matrix)) |> 
   ggplot(aes(x = Var1, y = Var2, fill = Freq)) +
   geom_tile() +
-    scale_fill_gradient2(
-      low = "steelblue",
-      mid = "white",
-      high = "darkred",
-      midpoint = 0,
-      limits = c(-1,1)
-    ) +
+  scale_fill_gradient2(
+    low = "steelblue",
+    mid = "white",
+    high = "darkred",
+    midpoint = 0,
+    limits = c(-1,1)
+  ) +
   coord_equal() +
   labs(
     title = "Correlation Matrix",
@@ -556,7 +563,7 @@ cormatrix <- as.data.frame(as.table(cor_matrix)) |>
     axis.text.x = element_text(angle = 45, hjust = 1)
   )
 cormatrix
-  
+
 ## Computing lagged predictor correlations
 horizons <- c(1, 3, 6, 12)
 
@@ -589,12 +596,12 @@ lagged_correlations <- expand_grid(
       )
     )
   )
-  
+
 lagged_correlations |> 
   mutate(
     horizon = factor(horizon),
     predictor = factor(predictor)
-      ) |> 
+  ) |> 
   ggplot(aes(
     x = horizon,
     y = predictor,
@@ -618,9 +625,43 @@ lagged_correlations |>
     fill = "Correlation"
   ) +
   theme_minimal()
-lagged_correlations  
+lagged_correlations
 
-glimpse(lagged_correlations)
+## Stationary test
+
+#install.packages("purrr")
+#install.packages("tseries")
+library(purrr)
+library(tseries)
+
+stationarity_vars <- c(
+  "inflation_12m",
+  "unemp",
+  "policy_rate",
+  "credit_growth",
+  "eur_nok_growth",
+  "usd_nok_growth",
+  "brent_growth",
+  "krone_i44_growth",
+  "retail_growth",
+  "us_inflation",
+  "electricity_inflation",
+  "hicp_ea"
+)
+
+adf_results <- map_dfr(stationarity_vars, function(v) {
+  
+  x <- na.omit(cor_data[[v]])
+  
+  test <- adf.test(x)
+  
+  tibble(
+    variable = v,
+    adf_statistic = unname(test$statistic),
+    p_value = test$p.value
+  )
+})
+adf_results
 
 
 
