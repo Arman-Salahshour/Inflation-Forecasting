@@ -188,6 +188,11 @@ series_list = list(
   brent=brent, us_cpi=us_cpi, hicp=hicp
 )
 
+# Define functions to calculate the 12-month log difference and the 12-month difference
+dl12 = function(x) 100 * (log(x) - log(lag(x, 12)))
+d12 = function(x) x - lag(x, 12)
+
+
 # Check first month, last month and number of rows of every series before joining
 series_list |> 
   map(\(df) tibble(first=min(df$date), last=max(df$date), rows=nrow(df))) |> 
@@ -211,12 +216,35 @@ dataset = dataset |> rename(
   krone_i44=i44_index,
   policy_rate=policy_rate_pct
 )
+
+# Handle missing value in us_cpi
+dataset = dataset |>
+  arrange(date) |>
+  mutate(us_cpi = if_else(is.na(us_cpi), exp((log(lag(us_cpi)) + log(lead(us_cpi))) / 2), us_cpi))
+
+# Add the 12-month log difference for prices and the 12-month difference for rates
+prices = c("krone_i44", "eur_nok", "usd_nok", "cpi_elec", "us_cpi", "retail_volume", "brent_usd")
+rates = c("unemp", "policy_rate", "rate_3m", "yield_10y", "credit_growth")
+
+dataset = dataset |>
+  mutate(across(all_of(prices), dl12, .names="dl12_{.col}"))
+
+dataset = dataset |>
+  mutate(across(all_of(rates), d12, .names="d12_{.col}"))
+
+# Drop the first 12 months, they have no value 12 months earlier for the new columns
+dataset = dataset |> filter(date >= ym("2007-02"))
 glimpse(dataset)
 
 # Check whether any column includes any missing values or not
 dataset |> summarise(across(everything(), ~sum(is.na(.x))))
 
-# Check missing months, the sample starts in 2006-02 because unemployment is moved one month later
-all_months = tibble(date=seq(ym('2006-02'), ym('2026-08'), by='month'))
+# Check missing months, the sample starts in 2007-02: unemployment starts in 2006-01, is moved one month later,
+# and the 12-month changes need one year of history
+all_months = tibble(date=seq(ym('2007-02'), ym('2026-08'), by='month'))
 all_months |> anti_join(dataset, by='date')
+
+
+
+
 
