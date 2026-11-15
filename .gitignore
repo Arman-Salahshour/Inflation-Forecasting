@@ -1,5 +1,25 @@
-.R
+# R session files
+.RData
+.RDataTmp
+.Rhistory
+.Renviron
 .Rproj.user/
-data/
-policy_rate_norges_bank.csv
-.gitignore.swp
+
+# Quarto and knitr build files
+.quarto/
+*_cache/
+*_files/
+*.knit.md
+*.rmarkdown
+report/*.typ
+
+# Old raw downloads, the code only needs the two saved tables
+data/*
+!data/dataset.rds
+!data/ml_dataset.rds
+
+# Editor and system files
+*.swp
+*~
+.DS_Store
+Thumbs.db
