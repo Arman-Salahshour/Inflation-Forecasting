@@ -1,0 +1,251 @@
+% References for the term paper in BibTeX format, one entry per source.
+% The label on the first line of an entry (R-base below) is what you cite in the .qmd, e.g. [@R-base].
+% Articles and books: in Google Scholar, click "Cite" and then "BibTeX".
+% Data: the provider's website often says how to cite the dataset.
+% R packages: run citation("packagename") in the console and add a label yourself, since citation() leaves it empty.
+% Only the sources you cite appear in the reference list.
+
+@Manual{R-base,
+  title = {R: A Language and Environment for Statistical Computing},
+  author = {{R Core Team}},
+  organization = {R Foundation for Statistical Computing},
+  address = {Vienna, Austria},
+  year = {2025},
+  url = {https://www.R-project.org/},
+}
+
+% Data sources
+
+@Misc{ssb,
+  author = {{Statistics Norway}},
+  title = {{StatBank} tables 14706, 14700, 13760, 11599 and 07129},
+  year = {2026},
+  howpublished = {PxWebApi v2},
+  url = {https://www.ssb.no/en/statbank},
+  note = {Accessed November 2026},
+}
+
+@Misc{norgesbank,
+  author = {{Norges Bank}},
+  title = {Exchange rates and interest rates},
+  year = {2026},
+  howpublished = {SDMX API},
+  url = {https://data.norges-bank.no},
+  note = {Accessed November 2026},
+}
+
+@Misc{fred,
+  author = {{Federal Reserve Bank of St. Louis}},
+  title = {{FRED}, Federal Reserve Economic Data},
+  year = {2026},
+  url = {https://fred.stlouisfed.org},
+  note = {Series IR3TIB01NOM156N, IRLTLT01NOM156N, DCOILBRENTEU and CPIAUCSL. Accessed November 2026},
+}
+
+@Misc{eurostat,
+  author = {{Eurostat}},
+  title = {{HICP} monthly data, annual rate of change (prc\_hicp\_minr)},
+  year = {2026},
+  url = {https://ec.europa.eu/eurostat},
+  note = {Accessed November 2026},
+}
+
+% Literature
+
+@Article{atkeson2001,
+  author = {Atkeson, Andrew and Ohanian, Lee E.},
+  title = {Are {P}hillips Curves Useful for Forecasting Inflation?},
+  journal = {Federal Reserve Bank of Minneapolis Quarterly Review},
+  year = {2001},
+  volume = {25},
+  number = {1},
+  pages = {2--11},
+}
+
+@Article{stock2007,
+  author = {Stock, James H. and Watson, Mark W.},
+  title = {Why Has {U.S.} Inflation Become Harder to Forecast?},
+  journal = {Journal of Money, Credit and Banking},
+  year = {2007},
+  volume = {39},
+  number = {s1},
+  pages = {3--33},
+}
+
+@Article{medeiros2021,
+  author = {Medeiros, Marcelo C. and Vasconcelos, Gabriel F. R. and Veiga, {\'A}lvaro and Zilberman, Eduardo},
+  title = {Forecasting Inflation in a Data-Rich Environment: The Benefits of Machine Learning Methods},
+  journal = {Journal of Business \& Economic Statistics},
+  year = {2021},
+  volume = {39},
+  number = {1},
+  pages = {98--119},
+}
+
+@Article{mccracken2016,
+  author = {McCracken, Michael W. and Ng, Serena},
+  title = {{FRED-MD}: A Monthly Database for Macroeconomic Research},
+  journal = {Journal of Business \& Economic Statistics},
+  year = {2016},
+  volume = {34},
+  number = {4},
+  pages = {574--589},
+}
+
+@Article{tibshirani1996,
+  author = {Tibshirani, Robert},
+  title = {Regression Shrinkage and Selection via the Lasso},
+  journal = {Journal of the Royal Statistical Society: Series B},
+  year = {1996},
+  volume = {58},
+  number = {1},
+  pages = {267--288},
+}
+
+@Article{hoerl1970,
+  author = {Hoerl, Arthur E. and Kennard, Robert W.},
+  title = {Ridge Regression: Biased Estimation for Nonorthogonal Problems},
+  journal = {Technometrics},
+  year = {1970},
+  volume = {12},
+  number = {1},
+  pages = {55--67},
+}
+
+@Article{zou2005,
+  author = {Zou, Hui and Hastie, Trevor},
+  title = {Regularization and Variable Selection via the Elastic Net},
+  journal = {Journal of the Royal Statistical Society: Series B},
+  year = {2005},
+  volume = {67},
+  number = {2},
+  pages = {301--320},
+}
+
+@Article{breiman2001,
+  author = {Breiman, Leo},
+  title = {Random Forests},
+  journal = {Machine Learning},
+  year = {2001},
+  volume = {45},
+  number = {1},
+  pages = {5--32},
+}
+
+@Article{diebold1995,
+  author = {Diebold, Francis X. and Mariano, Roberto S.},
+  title = {Comparing Predictive Accuracy},
+  journal = {Journal of Business \& Economic Statistics},
+  year = {1995},
+  volume = {13},
+  number = {3},
+  pages = {253--263},
+}
+
+@Article{harvey1997,
+  author = {Harvey, David and Leybourne, Stephen and Newbold, Paul},
+  title = {Testing the Equality of Prediction Mean Squared Errors},
+  journal = {International Journal of Forecasting},
+  year = {1997},
+  volume = {13},
+  number = {2},
+  pages = {281--291},
+}
+
+@Article{clark2007,
+  author = {Clark, Todd E. and West, Kenneth D.},
+  title = {Approximately Normal Tests for Equal Predictive Accuracy in Nested Models},
+  journal = {Journal of Econometrics},
+  year = {2007},
+  volume = {138},
+  number = {1},
+  pages = {291--311},
+}
+
+@Article{bai2003,
+  author = {Bai, Jushan and Perron, Pierre},
+  title = {Computation and Analysis of Multiple Structural Change Models},
+  journal = {Journal of Applied Econometrics},
+  year = {2003},
+  volume = {18},
+  number = {1},
+  pages = {1--22},
+}
+
+% R packages (check the versions you used with citation("package"))
+
+@Article{tidyverse,
+  author = {Wickham, Hadley and Averick, Mara and Bryan, Jennifer and Chang, Winston and McGowan, Lucy D'Agostino and Fran{\c{c}}ois, Romain and Grolemund, Garrett and Hayes, Alex and Henry, Lionel and Hester, Jim and Kuhn, Max and Pedersen, Thomas Lin and Miller, Evan and Bache, Stephan Milton and M{\"u}ller, Kirill and Ooms, Jeroen and Robinson, David and Seidel, Dana Paige and Spinu, Vitalie and Takahashi, Kohske and Vaughan, Davis and Wilke, Claus and Woo, Kara and Yutani, Hiroaki},
+  title = {Welcome to the {tidyverse}},
+  journal = {Journal of Open Source Software},
+  year = {2019},
+  volume = {4},
+  number = {43},
+  pages = {1686},
+}
+
+@Article{glmnet,
+  author = {Friedman, Jerome and Hastie, Trevor and Tibshirani, Robert},
+  title = {Regularization Paths for Generalized Linear Models via Coordinate Descent},
+  journal = {Journal of Statistical Software},
+  year = {2010},
+  volume = {33},
+  number = {1},
+  pages = {1--22},
+}
+
+@Article{ranger,
+  author = {Wright, Marvin N. and Ziegler, Andreas},
+  title = {{ranger}: A Fast Implementation of Random Forests for High Dimensional Data in {C++} and {R}},
+  journal = {Journal of Statistical Software},
+  year = {2017},
+  volume = {77},
+  number = {1},
+  pages = {1--17},
+}
+
+@Article{forecast,
+  author = {Hyndman, Rob J. and Khandakar, Yeasmin},
+  title = {Automatic Time Series Forecasting: The {forecast} Package for {R}},
+  journal = {Journal of Statistical Software},
+  year = {2008},
+  volume = {27},
+  number = {3},
+  pages = {1--22},
+}
+
+@Article{strucchange,
+  author = {Zeileis, Achim and Leisch, Friedrich and Hornik, Kurt and Kleiber, Christian},
+  title = {{strucchange}: An {R} Package for Testing for Structural Change in Linear Regression Models},
+  journal = {Journal of Statistical Software},
+  year = {2002},
+  volume = {7},
+  number = {2},
+  pages = {1--38},
+}
+
+@Article{eurostat-r,
+  author = {Lahti, Leo and Huovari, Janne and Kainu, Markus and Biecek, Przemys{\l}aw},
+  title = {Retrieval and Analysis of {Eurostat} Open Data with the {eurostat} Package},
+  journal = {The R Journal},
+  year = {2017},
+  volume = {9},
+  number = {1},
+  pages = {385--392},
+}
+
+@Manual{tseries,
+  author = {Trapletti, Adrian and Hornik, Kurt},
+  title = {{tseries}: Time Series Analysis and Computational Finance},
+  note = {R package version 0.10-63},
+  year = {2026},
+  url = {https://CRAN.R-project.org/package=tseries},
+}
+
+@Manual{slider,
+  author = {Vaughan, Davis},
+  title = {{slider}: Sliding Window Functions},
+  note = {R package version 0.3.3},
+  year = {2025},
+  url = {https://CRAN.R-project.org/package=slider},
+}
