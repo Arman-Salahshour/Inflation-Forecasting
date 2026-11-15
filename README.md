@@ -1,32 +1,38 @@
-# Norwegian macro data project
+# Persistence Is Hard to Beat: Forecasting Norwegian Inflation with Machine Learning
 
-This project collects and combines monthly macroeconomic time series for Norway and related international indicators in R. The analysis uses public data from Norges Bank, Statistics Norway (SSB), Eurostat, and FRED, then joins the series by date to create one monthly dataset for macro analysis.
+Term paper in ECON3170/4170, autumn 2026, by Arman Salahshour and Truls Holmdal.
 
-## Included data
+We ask whether machine learning methods (LASSO, ridge, elastic net and a random forest) forecast Norwegian 12-month inflation better than simple benchmarks (a random walk, an autoregressive model and a small OLS model). The forecasts are made 1, 3, 6 and 12 months ahead, every month from January 2015 to August 2026.
 
-The script downloads and combines series such as:
+## Folders
 
-- CPI and core inflation
-- Policy rate and yield curves
-- Exchange rates
-- Unemployment
-- Credit growth
-- Retail sales
-- Electricity CPI
-- Brent oil price
-- Euro-area inflation
-- US CPI
+| Folder | What is in it |
+|---|---|
+| `code/` | The three R scripts |
+| `notebooks/` | A notebook version of each script (`.qmd`), with the rendered output (`.html`) |
+| `pdfs/` | The rendered notebooks as PDF files, with every figure and table |
+| `report/` | The term paper (`term-paper.qmd`) and its references (`references.bib`) |
+| `data/` | The dataset and the modelling table saved by the preprocessing notebook |
+| `images/` | The figures saved by the code |
+| `results/` | The forecasts, evaluation tables and LASSO coefficients saved by the code |
 
-## Files
+## The code
 
-- `main.R` – downloads the series, cleans the data, joins the monthly variables, and checks coverage.
+| Script | What it does | Section of the paper |
+|---|---|---|
+| `code/Preprocessing.R` | Downloads all series from the APIs, applies publication lags and transformations, builds the dataset and the modelling table | Data and preparation |
+| `code/EDA.R` | Descriptive figures, stationarity tests, correlations, structural breaks and rolling correlations | Data and preparation |
+| `code/Modelling.R` | Expanding-window forecasts for all models, evaluation tables, Diebold-Mariano tests, the LASSO selection analysis and the robustness checks with core inflation and a rolling window | Methods, Results and evaluation |
 
 ## How to run
 
-1. Open the project in RStudio using `Project.Rproj`.
-2. Install the required packages if needed:
-   - `tidyverse`
-   - `eurostat`
-3. Run `main.R`.
+1. Open `Project.Rproj` in RStudio, so the working directory is the project folder.
+2. Install the packages if needed: `tidyverse`, `eurostat`, `tseries`, `slider`, `strucchange`, `glmnet`, `ranger`, `forecast`.
+3. Run `code/Preprocessing.R`, then `code/EDA.R`, then `code/Modelling.R`, in the same R session. The forecasting loops take a few minutes.
+4. Render `report/term-paper.qmd`. It only reads the saved files in `results/` and `images/`.
 
-The script will fetch the latest available data from the source APIs and construct a merged monthly dataset for analysis.
+The notebooks can also be run on their own, in the same order. `Preprocessing.qmd` saves the data, and the other two load it. Keep `_quarto.yml` in the project folder: it lets the report use the figures in `images/`.
+
+## Data sources
+
+Statistics Norway (SSB), Norges Bank, FRED and Eurostat. All series are downloaded from the providers' public APIs, so no data file needs to be added by hand.
