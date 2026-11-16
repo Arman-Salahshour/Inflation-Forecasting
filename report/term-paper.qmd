@@ -2,8 +2,8 @@
 title: "Persistence Is Hard to Beat: Forecasting Norwegian Inflation with Machine Learning"
 subtitle: "Term paper in ECON3170/4170, autumn 2026"
 author:
-  - name: Arman Salahshour (candidate no. 170133)
-  - name: Truls Holmdal (candidate no. XXXX)
+  - name: candidate no. 170133
+  - name: candidate no. 170117
 date: today
 date-format: D MMMM YYYY
 abstract: |
@@ -17,13 +17,6 @@ execute:
   warning: false
   message: false
 ---
-
-<!-- NOTE FOR THE TEAM
-Still to do before submitting:
-1. Truls: replace XXXX in the header with your candidate number.
-2. Truls: add your sentences linking our results to the literature in the conclusion, after "simple models are hard to beat".
-3. Delete this comment.
--->
 
 ```{r}
 #| label: setup
@@ -46,29 +39,29 @@ model_names = c("RW", "OLS", "LASSO", "Ridge", "EN", "RF")
 
 # Introduction and objective
 
-For most of the 2010s, forecasting Norwegian inflation looked easy. The 12-month rate moved mostly between 1 and 4 per cent and never stayed far from Norges Bank's target for long. Then it climbed. By October 2022 it had passed 7 per cent, more than three times the 2 per cent target, and it stayed above 5 per cent until the summer of 2023. A model trained on the calm years had almost nothing in its data that looked like what was coming.
+For most of the 2010s, forecasting Norwegian inflation looked easy. The 12-month headline CPI moved mostly between 1 and 4 per cent and never stayed far from Norges Bank's target for long. In March 2020, the pandemic Covid hit Norway. To prevent a sharp decrease in economic activity, the central bank lowered the policy rate. However, savings went up in households due to lockdown, no one could really use their money. In September 2021 most of the society opened up and economic activity skyrocketed. By October 2022 headline CPI had passed 7 per cent, more than three times the 2 per cent target, and it stayed above 5 per cent until the summer of 2023. A model trained on the calm years had almost nothing in its data that looked like what was coming.
 
-That makes Norway a hard test for a claim that has become popular. The older view of inflation forecasting is that simple models are very hard to beat: a random walk or a short autoregression tends to match models built on economic theory [@atkeson2001; @stock2007]. The newer view comes from machine learning. Using more than a hundred US series from the FRED-MD database [@mccracken2016], @medeiros2021 find that machine learning methods, and random forests in particular, clearly improve on these benchmarks. But their setting is data rich. We have about twenty years of monthly data and a dozen relevant series, and it is not obvious that the result survives the move.
+This makes Norway a hard test for a claim that has become popular. The older view of inflation forecasting is that simple models are very hard to beat: a random walk or a short autoregression tends to match models built on economic theory [@atkeson2001; @stock2007]. The newer view comes from machine learning. Using more than a hundred US series from the FRED-MD database [@mccracken2016], @medeiros2021 find that machine learning methods, and random forests in particular, clearly improve on these benchmarks. But their setting is data rich. We have about twenty years of monthly data and a dozen relevant series, and it is not obvious that the result survives the move.
 
-We ask three questions. Can machine learning methods improve out-of-sample forecasts of Norwegian inflation compared with simple linear benchmarks? Did the ranking of the models change when inflation surged after 2021? And which predictors does LASSO actually select, and does the selection change over time?
+In this paper we will ask three questions. Can machine learning methods improve out-of-sample forecasts of Norwegian inflation compared with simple linear benchmarks? Did the ranking of the models change when inflation surged after 2021? And which predictors does LASSO actually select, and does the selection change over time?
 
-Most of the work in answering them is programming. The data come from four public APIs, every series has to enter on the date it was actually published, and seven models have to be re-estimated every month for almost twelve years without ever seeing the future. We describe how we built that pipeline, where it can quietly go wrong, and how we checked it. The answer to the first question turns out to be no. The second shows that even the ranking of the simple models depends on the period, and the third explains why the machine learning models gain so little.
+Most of the work in answering them is programming. The data is retrieved from four public APIs, every series has to enter on the date it was actually published, and seven models have to be re-estimated every month for almost twelve years without ever seeing the future. We describe how we built that pipeline, where it can quietly go wrong, and how we checked it. The answer to the first question turns out to be no. The second shows that even the ranking of the simple models depends on the period, and the third explains why the machine learning models gain so little.
 
 # Data and preparation
 
 ## From four APIs to one table
 
-All series are monthly and come straight from the providers' APIs, so one script rebuilds the whole dataset. @tbl-data lists them. Consumer prices, unemployment, household credit and retail sales come from Statistics Norway [@ssb], exchange rates and the policy rate from Norges Bank [@norgesbank], interest rates, oil prices and US prices from FRED [@fred], and euro area inflation from Eurostat [@eurostat], using the `eurostat` package [@eurostat-r]. Each provider has its own format: Norges Bank serves semicolon-separated files, Statistics Norway writes months as `2005M01`, and FRED marks missing values with a dot. We wrote one small download function per provider that always returns the same two columns, a date and a value, so that all series can be joined by date in a single step.
+All series are monthly and retrieved straight from the providers' APIs, so one script rebuilds the whole dataset. @tbl-data lists them. Consumer prices, unemployment, household credit and retail sales come from Statistics Norway [@ssb], exchange rates and the policy rate from Norges Bank [@norgesbank], interest rates, oil prices and US prices from FRED [@fred], and euro area inflation from Eurostat [@eurostat], using the `eurostat` package [@eurostat-r]. Each provider has its own format: Norges Bank serves semicolon-separated files, Statistics Norway writes months as `2005M01`, and FRED marks missing values with a dot. We wrote one small download function per provider that always returns the same two columns, a date and a value, so that all series can be joined by date in a single step.
 
-The target is headline 12-month inflation, measured as a log change:
+The target for our analysis is headline 12-month CPI, measured as a log change:
 
 $$
 \pi_t = 100 \, (\ln P_t - \ln P_{t-12})
 $$ {#eq-target}
 
-where $P_t$ is the consumer price index. As a first check on the pipeline, we compared it with the 12-month rate that Statistics Norway publishes. Once that rate is put on the same log scale, the two never differ by more than 0.05 percentage points.
+where $P_t$ is the consumer price index. As a first check on the pipeline, we compared it with the 12-month CPI that Statistics Norway publishes. Once that rate is put on the same log scale, the two never differ by more than 0.05 percentage points.
 
-Two choices at this stage decide whether the later forecasts are honest and stable. The first is about timing. Several series are published a month after the CPI, so on the day we make a forecast we only know last month's unemployment rate, credit growth, retail sales, US CPI and euro area inflation. Using the current month's value would give the models information that no forecaster had. We therefore move these series one month later before the join, so each value sits in the row where it was actually available. The second is about trends. Most predictors trend or wander, and a model fitted on such a series learns the trend instead of the relationship. Following common practice for macroeconomic data [@mccracken2016], prices and indexes enter as 12-month log changes and interest rates as 12-month differences. ADF and KPSS tests from the `tseries` package [@tseries] confirm that most of the transformed series are stationary. The inflation rates do not pass, which reflects the shift in level after 2021, so we keep them.
+Two choices at this stage decide whether the later forecasts are honest and stable. The first is about timing. Several series are published a month after CPI, so at the day we make a forecast, we only know last month's unemployment rate, credit growth, retail sales, US CPI and euro area inflation. Using the current month's value would give the models information that no forecaster had. We therefore move these series one month later before the join, so each value sits in the row where it was actually available. The second is about trends. Most predictors trend or wander, and a model fitted on such a series learns the trend instead of the relationship. Following common practice for macroeconomic data [@mccracken2016], prices and indexes enter as 12-month log changes and interest rates as 12-month differences. ADF and KPSS tests from the `tseries` package [@tseries] confirm that most of the transformed series are stationary. The inflation rates do not pass, which reflects the shift in level after 2021, so we keep them.
 
 One missing US CPI value (October 2025) is filled with the geometric midpoint of its neighbours. After the 12-month changes, the sample runs from February 2007 to August 2026: 235 months with no missing values.
 
@@ -199,7 +192,7 @@ We also ran the whole exercise twice more, first with core inflation (CPI-ATE) a
 
 # Conclusion
 
-Machine learning does not improve on a simple autoregressive model for Norwegian inflation: no challenger beats AR significantly at any horizon. The ranking did change after 2021, but not in favour of machine learning. Before the surge, mean reversion paid off and AR was best. During it, persistence paid off and the random walk was best, and no model anticipated the surge itself. And what LASSO selects explains both results. With about twenty years of monthly data and relationships that keep shifting, the best a regularised model can do is to become an autoregression, and it does, rediscovering the base effect on the way. When it trusts many predictors, as at the 12-month horizon before 2019, it overfits and gets worse. Core inflation points the same way: the only model that is always ahead of AR there is the small OLS model. In this sample, the older view from the introduction holds: simple models are hard to beat.
+Machine learning does not improve on a simple autoregressive model for Norwegian inflation: no challenger beats AR significantly at any horizon. The ranking did change after 2021, but not in favour of machine learning. Before the surge, mean reversion paid off and AR was best. During it, persistence paid off and the random walk was best, and no model anticipated the surge itself. And what LASSO selects explains both results. With about twenty years of monthly data and relationships that keep shifting, the best a regularised model can do is to become an autoregression, and it does, rediscovering the base effect on the way. When it trusts many predictors, as at the 12-month horizon before 2019, it overfits and gets worse. Core inflation points the same way: the only model that is always ahead of AR there is the small OLS model. In this sample, the older view from the introduction holds: simple models are hard to beat. Our findings are consistent with @JOSEPH20241521, who find that an autoregressive benchmark is difficult to outperform overall when forecasting UK inflation. Other studies contradicts our findings. @medeiros2021 found that machine learning methods improved forecasting ability in a data-rich environment. It is possible that we do not see the same results as @medeiros2021 because of our smaller data environment. Thus could that be something to further explore. 
 
 These conclusions come with limitations. With 60 to 70 forecasts per period, the Diebold–Mariano test has little power, so "not significant" means we cannot tell the models apart, not that they are equal. We also use the latest published data and not the vintages available at each forecast date, so revised series such as unemployment are slightly better than what a real forecaster had.
 
